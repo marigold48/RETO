@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<title>RETO::Test Canvas</title>
+<script type="text/javascript" src="/Kernel0/lib/prototype.js"></script>
+
+<style>
+#divBase {position:absolute;top:120px;width:95%;height:700px;}
+</style>
+<script>
+var cntxt = '';
+
+function rotacion(dx,dy){
+// punts = [[0,30.5],[28.5,0],[0,13.5]];
+   var ang = Math.atan(dy/dx);
+   if (dx < 0) ang = ang + Math.PI;
+   p0X = 0*Math.cos(ang)+50.5*Math.sin(ang);
+   p0Y = 0*Math.sin(ang)-50.5*Math.cos(ang);
+
+//   p1X = 28.5*Math.cos(ang)-0*Math.sin(ang);
+//   p1Y = 28.5*Math.sin(ang)+0*Math.cos(ang);
+
+//   p2X = 0*Math.cos(ang)+13.5*Math.sin(ang);
+//   p2Y = 0*Math.sin(ang)-13.5*Math.cos(ang);
+   var punt = [p0X,p0Y];
+   return punt;
+}
+
+function testCanvas(){
+   var x0 = parseInt($('P1').value.split(',')[0]);
+   var y0 = parseInt($('P1').value.split(',')[1]);
+   var x1 = parseInt($('P2').value.split(',')[0]);
+   var y1 = parseInt($('P2').value.split(',')[1]);
+   console.log(x0+','+y0+';'+  x1+','+y1);
+
+   var xm = (x0+x1)/2;
+   var ym = (y0+y1)/2;
+   var punt1 = rotacion(x1-x0,y1-y0);
+   var punt2 = rotacion(x0-x1,y0-y1);
+
+   cntxt.moveTo(x0+0.5,y0+0.5);
+   cntxt.quadraticCurveTo(punt1[0]+xm+0.5,punt1[1]+ym+0.5,x1+0.5,y1+0.5);
+   cntxt.moveTo(x1+0.5,y1+0.5);
+   cntxt.quadraticCurveTo(punt2[0]+xm+0.5,punt2[1]+ym+0.5,x0+0.5,y0+0.5);
+   cntxt.stroke();
+
+}
+
+function setCanvasGrafo(){
+   try {
+   var divCanvas = $('divBase');
+   var canvas = new Element('canvas');
+   canvas.id='canvas1';
+//  canvas.style.width = divCanvas.scrollWidth+"px";
+//   canvas.style.height = divCanvas.scrollHeight+"px";
+
+   canvas.width = divCanvas.scrollWidth;
+   canvas.height = divCanvas.scrollHeight;
+//   canvas.style.overflow = 'visible';
+//   canvas.style.position = 'absolute';
+//   canvas.style.zOrden = 1;
+   canvas.style.border = "blue 1px solid";
+   canvas.style.backgroundColor = "gray";
+   divCanvas.appendChild(canvas);
+   
+   cntxt = canvas.getContext("2d");
+   
+   }catch (e){alert(e.message);}
+
+}
+</script>
+</head>
+<body onload='javascript:setCanvasGrafo()'>
+<h1>Tests Canvas</h1>
+<form action="javascript:testCanvas()" >
+<input type="text" id="P1" value="10,100">
+<input type="text" id="P2" value="250,50">
+<input type="submit"  value="Pintar">
+</form>
+<div id="divBase" ></div>
+</body>
+</html>

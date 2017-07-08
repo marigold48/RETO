@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<title>RETO::Test Passwords</title>
+<script type="text/javascript" src="/Kernel0/lib/prototype.js"></script>
+<script type="text/javascript" src="/Kernel0/js/k0_comun.js"></script>
+<script type="text/javascript" src="/Kernel0/js/k0_sesion.js"></script>
+<style>
+body {font-family:Helvetica;}
+h1 {color:maroon}
+#divBase {margin-left:20px;}
+.indice > a {float:left;margin:5px;width:150px;background-color:gray;}
+.indice > a {padding:10px;font-size:120%;color:white;text-decoration:none}
+.indice > a:hover {color:blue; font-size:120%;background-color:#dbdbdb;}
+</style>
+<script>
+function ecoPbaPwd(resp){
+   alert(resp.responseText);
+}
+function probarUsrPwd(){
+   var id = getId(6,1);
+   var usr = $('USR').value;
+   var pwd = $('PWD').value;
+   console.log(id+':'+usr+':'+pwd);
+   ajaxValidaPassword(id,usr,pwd,'/home/reto/Apps/Tests0/admin',ecoPbaPwd);
+}
+
+function cambiarPwd(){
+   var id = getId(6,1);
+   var usr = $('USR').value;
+   var pwd0 = $('PWD').value;
+   var pwd1 = $('PWD1').value;
+   var pwd2 = $('PWD2').value;
+   console.log(id+':'+usr+':'+pwd0+':'+pwd1+':'+pwd2);
+   kCambiaPassword(id,usr,pwd0,pwd1,pwd2,'/home/reto/Apps/Tests0/admin',ecoPbaPwd);
+}
+
+</script>
+</head>
+<body>
+<div id="divBase">
+<h1>Tests Passwords</h1>
+<div class="indice"><a href="javascript:probarUsrPwd()">Probar Usr/Pwd</a></div>  
+<form>
+<input type="text" id="USR" placeholder="Usuario">
+<input type="text" id="PWD" placeholder="Password">
+</form>
+</div>
+<div class="indice"><a href="javascript:cambiarPwd()">Cambiar Pwd</a></div>  
+<form>
+<input type="text" id="PWD1" placeholder="Nuevo Pwd">
+<input type="text" id="PWD2" placeholder="Nuevo actual">
+</form>
+</div>
+</body>
+</html>
