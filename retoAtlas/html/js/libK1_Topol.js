@@ -312,3 +312,724 @@ function queryTopol(bbdd,ruta,colecc,tipo){
 	ajaxQueryMongoDB(id,bbdd,stmt,ruta,ecoQueryTopol);
 }
 
+//=================================================================== Obj Conjt
+var retoConjt = Class.create({
+initialize : function(nodos,f){
+	this.nodos = nodos;
+	this.indice = new Array();
+	this.fnShow = f;
+	this.optimizaNodos();
+},
+optimizaNodos : function(){
+	this.indice = new Array();
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++) { 
+		this.indice.push(parseInt(this.nodos[i].get('id0')));
+	}
+},
+getNodos : function(){
+	return this.nodos;
+},
+getNumNodos : function(){
+   return this.nodos.length;
+},
+getNodoByIx : function(ix){
+    var nodo = this.nodos[ix];
+	return nodo;
+},
+getNodoById : function(id){
+	var ix = this.indice.indexOf(parseInt(id));
+    var nodo = this.nodos[ix];
+	return nodo;
+},
+updtNodoSelf : function (nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	this.nodos[ix] = nodo.clone();
+},
+addNodoSelf : function (nodo){
+	this.nodos.push(nodo.clone());
+	console.log('addNodoSelf '+nodo.get('tag'));
+	this.optimizaNodos();
+},
+borraNodoSelf : function(nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	console.log(id+'::'+ix);
+	if (ix == -1) return false;
+	this.nodos.splice(ix,1);	
+	this.optimizaNodos();
+},
+
+show : function(div){
+	$(div).update();
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++) this.fnShow(this.nodos[i],div);
+}
+})
+
+//================================================================== Obj Lista
+
+var retoLista = Class.create({
+initialize : function(nodos,f){
+	this.nodos = nodos;
+	this.indice = new Array();
+	this.fnShow = f;
+	this.optimizaNodos();
+},
+optimizaNodos : function(){
+	this.indice = new Array();
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++) { 
+		this.indice.push(parseInt(this.nodos[i].get('id0')));
+		this.nodos[i].set('num',i);
+	}
+},
+getNodos : function(){
+	return this.nodos;
+},
+getNumNodos : function(){
+   return this.nodos.length;
+},
+getNodoById : function(id){
+	var ix = this.indice.indexOf(parseInt(id));
+    var nodo = this.nodos[ix];
+	return nodo;
+},
+updtNodoSelf : function (nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	this.nodos[ix] = nodo.clone();
+},
+addNodoSelf : function (nodo){
+	this.nodos.push(nodo.clone());
+	console.log('addNodoSelf '+nodo.get('tag'));
+	this.optimizaNodos();
+},
+borraNodoSelf : function(nodo){
+	var id = nodo.get('id0'); 
+	var ix = this.indice.indexOf(id);
+	console.log(id+'::'+ix);
+	this.nodos.splice(ix,1);	
+	this.optimizaNodos();
+},
+subeNodoSelf : function(nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	if (ix < 2) return;
+	var aux = this.nodos[ix-1];
+	this.nodos[ix-1] = nodo;
+	this.nodos[ix] = aux;
+	this.optimizaNodos();
+},
+bajaNodoSelf : function(nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	var n = this.nodos.length;
+	if (ix >= n-1) return;
+	var aux = this.nodos[ix+1];
+	this.nodos[ix+1] = nodo;
+	this.nodos[ix] = aux;
+	this.optimizaNodos();
+},
+show : function(div){
+	$(div).update();
+	var n = this.nodos.length;
+	for (var i=1;i<n;i++) this.fnShow(this.nodos[i],div);
+}
+})
+
+//=================================================================== Obj Arbol
+
+function cambiaIdsArbol(nodos){
+	var nodosOK = optimizaNodosArbol(nodos);
+	var arbol = new retoArbol(nodosOK);
+	arbol.cambiaIds();
+	var cambiados = arbol.getNodos();
+	return cambiados;
+}
+
+function optimizaNodosArbol(nodos){
+	var ixP,ixH,nAux,hijos;
+
+	var indice0 = new Array();
+	var indice1 = new Array();
+	var nodosOK = new Array();
+	var nodosKO = new Array();
+
+// recopila todos los id0 que llegan
+
+	nodos.each(function(nodo){
+		indice0.push(parseInt(nodo.get('id0')));
+	})
+// swap si ix-hijo < ix-padre
+	nodos.each(function(nodo){
+		ixH = indice0.indexOf(parseInt(nodo.get('id0')));
+		ixP = indice0.indexOf(parseInt(nodo.get('id1')));
+		if (ixH < ixP){
+			nAux = nodos[ixP];
+			nodos[ixP] = nodo;
+			nodos[ixH] = nAux;
+			indice0[ixP] = parseInt(nodo.get('id0'));
+			indice0[ixH] = parseInt(nAux.get('id0'));
+			}
+	})
+// console.log(indice0.join('|'));
+
+// Trata los nodos
+	nodos.each(function(nodo){
+		id0 = parseInt(nodo.get('id0'));
+		id1 = parseInt(nodo.get('id1'));
+		cod = nodo.get('cod');
+
+		nodo.set('hijos',new Array());
+		nodo.set('stat','FULLA');
+		ixP = indice1.indexOf(id1); // ixP refleja la posicion del nodo padre en nodosOK
+// console.log(id0+'/'+id1+':'+ixP);
+
+		if (cod == '_borrado') null;
+		else if (cod == '_nodo0'){
+			indice1.push(id0);
+			nodosOK.push(nodo);
+		} 
+		else if (ixP >= 0){ // Hay un padre Anterior. Caso normal
+			nAux = nodosOK[ixP];
+			nAux.set('stat','COLAP');
+			hijos = nAux.get('hijos');
+			hijos.push(id0);
+//			console.log(hijos.join('|'));
+			nodo.set('num',hijos.length);
+			indice1.push(id0);
+			nodosOK.push(nodo);
+			}
+		else {
+			nodosKO.push(nodo);
+			} 
+		})
+	// Si hay nodos 'fuera de secuencia', pero que tienen nodo padre, se repite la operación
+	
+//	console.log(nodosOK.length+' OK y '+ nodosKO.length + ' KO');
+
+	return nodosOK; 
+}
+
+//=================================================================== Obj Arbol
+var retoArbol = Class.create({
+initialize : function(nodos,f){
+	this.nodos = nodos;
+	this.indice = new Array();
+	this.fnShow = f;
+	this.indexaNodos();
+},
+setFnShow : function(f){
+	this.fnShow = f;
+},
+indexaNodos : function(){
+	this.indice = new Array();
+	var nodos = new Array();
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++){
+		if (this.nodos[i].get('cod') != '_borrado'){
+			this.indice.push(parseInt(this.nodos[i].get('id0')));
+			nodos.push(this.nodos[i]);
+		}
+	} 
+	this.nodos = nodos;
+//	console.log(this.nodos.length+' Nodos y '+this.indice.length+' IDs');
+},
+colapAll : function(){
+	console.log('Expande todo');
+	var n = this.nodos.length;
+	for (var i=1;i<n;i++) if (this.nodos[i].get('stat') == 'EXPAN') this.nodos[i].set('stat','COLAP');
+},
+expandAll : function(){
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++)  if (this.nodos[i].get('stat') == 'COLAP') this.nodos[i].set('stat','EXPAN');
+},
+cambiaIdNodo : function(nodo,index){
+//	console.log('Entra: '+nodo.values().join('|'));
+	var hijosNew = new Array();
+	var hijosOld = nodo.get('hijos');
+	var n = hijosOld.length;
+	for(var i=0;i<n;i++){
+		var ix = this.indice.indexOf(hijosOld[i]);
+		hijosNew.push(index[ix])
+	}
+	nodo.set('hijos',hijosNew);
+	var ix = this.indice.indexOf(nodo.get('id0'));
+	nodo.set('id0',index[ix]);
+
+	var ix = this.indice.indexOf(nodo.get('id1'));
+	if (ix === -1) null;
+	else nodo.set('id1',index[ix]);
+//	console.log('Sale: '+nodo.values().join('|'));
+},
+cambiaIds : function(){
+	var idx,nodo;
+	var index = new Array();
+	var n = this.indice.length;
+	for(var i=0;i<n;i++) index.push(getId(6,1));
+	for (var i=0;i<n;i++){
+		idx = this.indice[i];
+		nodo = this.getNodoById(idx);
+		this.cambiaIdNodo(nodo,index);
+	}
+
+},
+purgaHijosBorrados : function(nodo){
+	var hijos = nodo.get('hijos');
+	var hijosOK = new Array();
+	var n = hijos.length;
+	for(var i=0;i<n;i++){
+		var idH = hijos[i];
+		var hijo = this.getNodoById(idH);
+		if (hijo.get('cod') != '_borrado') hijosOK.push(idH);
+	}
+
+	nodo.set('hijos',hijosOK);
+
+	var n = hijosOK.length;
+	if (!n) nodo.set('stat','FULLA');
+	else {
+		for(var i=0;i<n;i++){
+			var idH = hijos[i];
+			var hijo = this.getNodoById(idH);
+			this.purgaHijosBorrados(hijo);
+		}
+	}
+
+},
+getRaiz : function(){
+	return this.nodos[0];
+},
+getNodos : function(){
+	return this.nodos;
+},
+getNumNodos : function(){
+   return this.nodos.length;
+},
+setShowFunction : function(f){
+	this.fnShow = f;
+},
+getNodoById : function(id){
+	var ix = this.indice.indexOf(parseInt(id));
+	if (ix != -1) return this.nodos[ix];
+},
+updtNodoSelf : function (nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.indice.indexOf(id);
+	nodo.set('stat',this.nodos[ix].get('stat'))
+	nodo.set('hijos',this.nodos[ix].get('hijos'))
+	this.nodos[ix] = nodo;
+},
+addNodoHijo : function (pare,nodo,ix){
+	var idP = parseInt(pare.get('id0'));
+	var idH = parseInt(nodo.get('id0'));
+
+	var padre = this.getNodoById(idP);
+	var stat = padre.get('stat');
+	var hijos = padre.get('hijos');
+
+	if (stat = 'FULLA') padre.set('stat','EXPAN');
+	
+	if (ix % 1 === 0) hijos.splice(ix+1,0,idH); // si hay presente un indice, inserta detrás
+	else hijos.push(idH); // si no, añade al final
+
+	nodo.set('num',hijos.length);
+	nodo.set('id1',idP);
+	nodo.set('stat','FULLA');
+	nodo.set('hijos',new Array());
+
+	this.nodos.push(nodo);
+	this.indice.push(idH);
+},
+borraRama : function(nodo){
+	nodo.set('cod','_borrado');
+
+	var hijos = nodo.get('hijos');
+	var n = hijos.length;
+	for (var i=0;i<n;i++){
+		var idH = hijos[i];
+		var hijo = this.getNodoById(idH);
+		this.borraRama(hijo);
+	}
+},
+getRamaNodo : function (nodo,rama){
+	rama.push(nodo);
+	var hijos = nodo.get('hijos');
+	var n = hijos.length;
+	for (var i=0;i<n;i++){
+		var id = hijos[i];
+		var nodox = this.getNodoById(id);
+		this.getRamaNodo(nodox,rama);
+		}
+},
+getNodosAncla : function(){
+   var nodo,cod;
+   var anclas = new Array();
+   var n = this.nodos.length;
+   
+	for (var i=0;i<n;i++){
+	   nodo = this.nodos[i];
+		cod = nodo.get('cod');
+		if (cod == '_ancla') anclas.push(nodo);
+		}
+	return anclas;
+},
+pegaRamaNodo : function(ancla,rama){
+	var idP = parseInt(ancla.get('id1'));
+	var padre = this.getNodoById(idP);
+	var stat = padre.get('stat');
+	var hijos = padre.get('hijos');
+
+	var injerto = rama.splice(0,1)[0];
+	console.log(injerto);
+	var idInj = injerto.get('id0');
+	rama.each(function(nodo){
+		if (nodo.get('id1') == idInj){  // Los nodos hijos del injerto pasan a ser hijos del nodo injertado
+			hijos.push(nodo.get('id0'));
+			nodo.set('id1',idP)
+		}
+	
+	})
+
+	this.nodos = this.nodos.concat(rama);
+	this.indexaNodos();
+},
+updtRamaNodo : function(nodo,rama){
+	this.borraRama(nodo);
+	this.pegaRamaNodo(nodo,rama);
+},
+borraNodoSelf : function(nodo){ // Borrado recursivo de la rama, y purgar hijos borrados. Reindexar
+	var id0 = parseInt(nodo.get('id0'));
+	var nodox = this.getNodoById(id0);
+	this.borraRama(nodox);
+	this.purgaHijosBorrados(this.getRaiz());
+	this.indexaNodos();
+},
+subeNodoSelf : function(nodo){  // swap en los hijos del padre, y swap en el array this.nodos. Reindexar
+	var id0 = parseInt(nodo.get('id0'));
+	var id1 = parseInt(nodo.get('id1'));
+	var padre = this.getNodoById(id1);
+	var hijos = padre.get('hijos');
+	var ixH = hijos.indexOf(id0);
+	if (!ixH) return;
+	var idAux = hijos[ixH-1];
+	hijos[ixH-1] = id0;
+	hijos[ixH] = idAux;
+	var ixAux = this.indice.indexOf(idAux);
+	var ixAct = this.indice.indexOf(id0);
+	var nAux = this.nodos[ixAux];
+	var nAct = this.nodos[ixAct];
+	nAct.set('num',ixH-1)
+	this.nodos[ixAct] = nAux;
+	this.nodos[ixAux] = nAct;
+	this.indexaNodos();
+},
+bajaNodoSelf : function(nodo){
+	var id0 = parseInt(nodo.get('id0'));
+	var id1 = parseInt(nodo.get('id1'));
+	var padre = this.getNodoById(id1);
+	var hijos = padre.get('hijos');
+	var ixH = hijos.indexOf(id0);
+	if (ixH == hijos.length-1) return;
+	var idAux = hijos[ixH+1];
+	hijos[ixH+1] = id0;
+	hijos[ixH] = idAux;
+	var ixAux = this.indice.indexOf(idAux);
+	var ixAct = this.indice.indexOf(id0);
+	var nAux = this.nodos[ixAux];
+	var nAct = this.nodos[ixAct];
+	nAct.set('num',ixH+1)
+	this.nodos[ixAct] = nAux;
+	this.nodos[ixAux] = nAct;
+	this.indexaNodos();
+},
+
+showNodos : function(nodo,div,nivel){
+	this.fnShow(nodo,div,nivel);
+	var stat = nodo.get('stat');
+	if (stat == 'EXPAN'){
+		var hijos = nodo.get('hijos');
+		var n = hijos.length;
+		for (var i=0;i<n;i++){
+			var id = hijos[i];
+			var nodox = this.getNodoById(id);
+			this.showNodos(nodox,div,nivel+1);
+		}
+	}
+},
+show : function(div){
+	$(div).update();
+	var raiz = this.nodos[0];
+	this.showNodos(raiz,div,0);
+}
+})
+
+//=================================================================== Obj Grafo
+var retoGrafo = Class.create({
+initialize : function(todos,f){
+	this.nodos = new Array();
+	this.arcos = new Array();
+	this.iNodos = new Array();
+	this.iArcos = new Array();
+	this.fnShow = f;
+	separaNodosArcos(todos);
+	this.optimizaNodos();
+	this.optimizaArcos();
+},
+separaNodosArcos : function(todos){
+	var nodox = '';
+	var n = todos.length;
+	for (i=0;i<n;i++){
+		nodox = todos[i];
+		if (!parseInt(nodox.get('id1'))) this.nodos.push(nodox); // nodos han de tener {id1}=0
+		else this.arcos.push(nodox);}
+},
+optimizaNodos : function(){
+	this.iNodos = new Array();
+	var n = this.nodos.length;
+	for (var i=0;i<n;i++) this.iNodos.push(parseInt(this.nodos[i].get('id0')));
+},
+optimizaArcosSimple : function(){
+	this.iArcos = new Array();
+	var n = this.arcos.length;
+	for (var i=0;i<n;i++) this.iArcos.push(parseInt(this.arcos[i].get('id0')));
+	console.log(this.iArcos.join('|'));
+},
+optimizaArcos : function(){
+	var arco, idx,id0,id1,ixI,ixF;
+	var arcos = new Array();
+	var n = this.arcos.length;
+	for (var i=0;i<n;i++){
+		arco = this.arcos[i];
+		idx = parseInt(arco.get('id0'));
+		id1 = parseInt(arco.get('id1'));
+		
+		id0 = idArc2id0 (idx,id1) ; //libK0_Comun.js
+		
+		ixI = this.iNodos.indexOf(id0);
+		ixF = this.iNodos.indexOf(id1);
+		
+		console.log(id0+'->'+id1+' | '+ixI+':'+ixF);
+
+		if (ixI >=0 && ixF >= 0) {
+			arco.set('nodoI',ixI);
+			arco.set('nodoF',ixF);
+			arco.set('num',i);
+			arcos.push(arco);
+		}
+	}
+	this.arcos = arcos;
+	this.optimizaArcosSimple();
+},
+getRaiz : function(){
+	return this.nodos[0];
+},
+getNodos : function(){
+	return this.nodos;
+},
+getArcos : function(){
+	return this.arcos;
+},
+getNumNodos : function(){
+   return this.nodos.length;
+},
+getNodoByIx : function(ix){
+	var nodo = this.nodos[ix];
+	return nodo;
+},
+getNodoById : function(id){
+	var ix = this.iNodos.indexOf(parseInt(id));
+	console.log('id/ix nodo: '+id+'/'+ix);
+	var nodo = this.nodos[ix];
+	return nodo;
+},
+getArcoById : function(id){
+	var ix = this.iArcos.indexOf(parseInt(id));
+	console.log('id/ix nodo: '+id+'/'+ix);
+	var arco = this.arcos[ix];
+	return arco;
+},
+
+updtNodoSelf : function (nodo){
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.iNodos.indexOf(id);
+	this.nodos[ix] = nodo.clone();
+},
+updtArcoSelf : function (arco){
+	var id = parseInt(arco.get('id0')); 
+	var ix = this.iArcos.indexOf(id);
+	this.arcos[ix] = arco.clone();
+},
+addNodoSelf : function (nodo){
+	this.nodos.push(nodo);
+	this.optimizaNodos();
+},
+addArcoByIds : function (idI,idF){
+	var id0  = parseInt(idI);
+	var id1  = parseInt(idF);
+	var idx = id02idArc(id0,id1);
+	if (this.iArcos.indexOf(idx)>= 0) return false; //solo se permite un arco en cada dirección, entre 2 nodos
+
+	var nodoI = this.getNodoById(idI);
+	var nodoF = this.getNodoById(idF);
+	var ixI = this.iNodos.indexOf(idI);
+	var ixF = this.iNodos.indexOf(idF);
+	var arco = getNodoStd(nodoI.get('tag')+':'+nodoF.get('tag'));
+	arco.set('id0',idx);
+	arco.set('id1',id1);
+	arco.set('num',this.arcos.length);
+	arco.set('ixI',ixI);
+	arco.set('ixF',ixF);
+	this.iArcos.push(idx);
+	this.arcos.push(arco);
+	return idx;
+},
+borraNodoSelf : function(nodo){ 
+	var id = parseInt(nodo.get('id0')); 
+	var ix = this.iNodos.indexOf(id);
+	console.log(id+'::'+ix);
+	this.nodos.splice(ix,1);	
+	this.optimizaNodos();
+},
+borraArcoSelf : function(arco){ 
+	var id = parseInt(arco.get('id0')); 
+	var ix = this.iArcos.indexOf(id);
+	console.log(id+'::'+ix);
+	this.arcos.splice(ix,1);	
+	this.optimizaArcosSimple();
+},
+show : function(div){
+	$(div).update();
+	this.optimizaArcos();
+	var n = this.nodos.length;
+	for (var i=1;i<n;i++) this.fnShow(this.nodos[i],div);
+	var n = this.arcos.length;
+	for (var i=0;i<n;i++) this.fnShow(this.arcos[i],div);
+}
+})
+
+//=================================================================== Obj Malla
+
+var retoMalla = Class.create({
+  initialize : function (nodo0,cols,rows,cells,f){
+      this.nodo0  = nodo0;
+      this.cols   = cols;
+      this.rows   = rows;
+      this.cells  = cells;
+      this.fnShow = f;
+      this.celdas = new Hash();
+      this.optimizaCeldas();
+},
+optimizaCeldas : function(){
+   var n = this.cells.length;
+   for (var i=0;i<n;i++){
+      id0 = this.cells[i].get('id0'); 
+      id1 = this.cells[i].get('id1'); 
+      id0 = id0 ^ id1;
+      this.celdas.set(id0+'.'+id1,'SI');
+   }
+   console.log(this.celdas);
+},
+getNodos : function(){
+   var nodos = new Array();
+   nodos.push(this.nodo0);
+   nodos = nodos.concat(this.cols);
+   nodos = nodos.concat(this.rows);
+   nodos = nodos.concat(this.cells);
+   return nodos;
+},
+getCols : function(){
+	return this.cols;
+},
+getRows : function(){
+	return this.rows;
+},
+getCells : function(){
+	return this.cells;
+},
+buscaValor : function (tdId){
+	return this.celdas.get(tdId);
+},
+borraCell :function (idCell){
+   var n = this.cells.length;
+   console.log('Cells: '+n);
+   for (var i=0;i<n;i++){
+      var cell = this.cells[i];
+      var id0 = parseInt(cell.get('id0'));
+      var id1 = parseInt(cell.get('id1'));
+      id0 = id0 ^ id1;
+      console.log(idCell+'::'+id0+'.'+id1);
+      
+      if (idCell == (''+id0+'.'+id1)){
+         this.cells.splice(i,1);
+         return false;
+         }
+   }
+
+},
+editaCelda : function (ev){
+	var idCell = ev.element().id;
+	console.log('Edit '+idCell);
+	var valor = this.buscaValor(idCell);
+	if (!valor){
+	   var cell = getNodoNuevo('Celda');
+	   cell.set('geo','CELL');
+	   var id0 = parseInt(idCell.split('.')[0]);
+	   var id1 = parseInt(idCell.split('.')[1]);
+	   id0 = id0 ^ id1;
+	   cell.set('id0', id0);
+	   cell.set('id1', id1);
+	   this.cells.push(cell);
+		var ok = new Element('i',{id:idCell,className:'fa fa-check'}).update('X');
+		ok.style.color ='green';
+		$(idCell).update(ok);
+		this.celdas.set(idCell,'SI');
+	} 
+	else {
+	   this.borraCell(idCell);
+		this.celdas.unset(idCell);
+		$(idCell).update('');
+	} 
+},
+show : function (div){
+	var tMatr = new Element('table');tMatr.style.border = '1px blue solid';
+	var tBody = new Element('tbody',{});
+	var th0 = new Element('th').update('');
+	tMatr.appendChild(th0);
+	
+   var nh = this.cols.length;
+	console.log('MALLA nh '+nh);
+   for (var i=0;i<nh;i++){
+ 		var th = new Element('th').update(this.cols[i].get('tag'));
+		tMatr.appendChild(th);
+ 		};
+ 	
+   var nr =  this.rows.length;
+	console.log('MALLA nr '+nr);
+   for (var i=0;i<nr;i++){
+ 		var tr = new Element('tr');
+		var td0 = new Element('td').update(this.rows[i].get('tag'));
+		tr.appendChild(td0);
+ 		tMatr.appendChild(tr);
+		for (var j=0;j<nh;j++){
+			vid = this.cols[j].get('id0')+'.'+ this.rows[i].get('id0');
+	 		var td = new Element('td',{id:vid});td.style.border = '1px blue solid';
+	 		td.on('click',this.editaCelda.bind(this));
+	 		valor = this.buscaValor(vid);
+//	 		console.log(vid+' : '+valor);
+	      if (guay(valor) && valor == 'SI'){
+		      var ok = new Element('i',{id:vid,className:'fa fa-check'}).update('X');
+		      ok.style.color ='green';
+   	      } 
+	      else ok = null;
+	 		td.update(ok);
+			tr.appendChild(td);
+	 		};
+   };
+	$(div).update(tMatr);
+}
+})
+  
+
