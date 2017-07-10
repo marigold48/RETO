@@ -40,6 +40,29 @@ function getNodoStd(cod,tag,etc,txt){
 	return nodo;
 }
 
+//-----------------------------------------------------------------
+function getTopolAtlas() {
+	db.collection('comments').find({}).then(docs => {
+	var html = docs.map(c => "<div>" + c.comment + "</div>").join("");
+	document.getElementById("comments").innerHTML = html;
+   });
+}
+
+function displayCommentsOnLoad() {
+	client.login().then(getTopolAtlas);
+}
+
+function altaTopolAtlas() {
+	var c = document.getElementById("new_comment");
+	db.collection("comments").insert({owner_id : client.authedId(),comment: c.value})
+	.then(displayComments);
+	c.value = "";
+}
+
+
+
+
+
 function getNodoZero(tag,etc){
 	var nodo = getNodoStd('_nodo0',tag,etc);
 	return nodo;
