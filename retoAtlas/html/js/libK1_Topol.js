@@ -40,7 +40,13 @@ function getNodoStd(cod,tag,etc,txt){
 	return nodo;
 }
 
-//-----------------------------------------------------------------
+function getNodoZero(tag,etc){
+	var nodo = getNodoStd('_nodo0',tag,etc);
+	return nodo;
+}
+
+
+//----------------------------------------------------------------- Funciones Atlas Pbas
 function getTopolAtlas() {
 	db.collection('comments').find({}).then(docs => {
 	var html = docs.map(c => "<div>" + c.comment + "</div>").join("");
@@ -52,21 +58,30 @@ function displayCommentsOnLoad() {
 	client.login().then(getTopolAtlas);
 }
 
-function altaTopolAtlas() {
-	var c = document.getElementById("new_comment");
+function saveTopolAtlas() {
+	var c = document.getElementById("divBase");
 	db.collection("comments").insert({owner_id : client.authedId(),comment: c.value})
-	.then(displayComments);
+	.then(getTopolAtlas);
 	c.value = "";
 }
+function showNodosXYZ(nodo){
+	var p = new Element('p').update(nodo.get('tag'));
+	$('divBase').appendChild();
 
-
-
-
-
-function getNodoZero(tag,etc){
-	var nodo = getNodoStd('_nodo0',tag,etc);
-	return nodo;
 }
+
+function altaTopolAtlas(){
+	var nodos = new Array();
+	for (i=0;i<6;i++){
+		var nodo = getNodoStd('Nodo '+i);
+		nodos.push(nodo);
+	}
+	$('divBase').update();
+	vgTopol.topol = new retoConjt(nodos,showNodosXYZ);
+	vgTopol.topol.show('divBase');
+
+}
+
 
 //=================================================================== Basado en Topol.js
 function showNodosDnD(nodo,i,divBase){
