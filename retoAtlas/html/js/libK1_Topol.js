@@ -23,6 +23,25 @@ var vgTopol = {
 	triggerPostCarga : '',
 	triggerPostQuery : ''
 }
+//------------------------------------------------------------------- Identificadores Random
+// Retorna un Num random de p+1 digitos, empezando por s = 1-9
+// Nodos (6,1) : 1000000 - 1999999
+// Sesiones (9,1) : 1000000000 - 1999999999
+function getId(prec,serie){
+	if (!prec) prec = 6;
+	if (!serie) serie = 1;
+	var base = 1;
+	for (var i=0;i<prec;i++) base *= 10; // 10 ^ base
+	return Math.floor(Math.random()*base + serie*base);
+}
+
+// Calcular un id0 para arcos, de forma que no se repitan el de salida y entrada
+function id02idArc(id0,id1){
+	return (id0 + 111) ^ id1; 
+}
+function idArc2id0(idx,id1){
+	return (idx ^ id1) - 111; 
+}
 
 //------------------------------------------------------------------- Crear Nodos
 
