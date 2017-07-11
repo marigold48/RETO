@@ -78,13 +78,11 @@ function displayCommentsOnLoad() {
 }
 
 function saveTopolAtlas() {
-	var c = document.getElementById("divBase");
-	db.collection("comments").insert({owner_id : client.authedId(),comment: c.value})
-	.then(getTopolAtlas);
-	c.value = "";
+	var stmt = 	topol2stmt(vgTopol.topol,false);
+	console.log(stmt);
+	db.collection("topol").update({"id0":1234567},'+strJson+',{upsert: true});
 }
 function showNodosXYZ(nodo,divBase){
-	alert(nodo.get('tag'));
 	var p = new Element('p').update(nodo.get('tag'));
 	$(divBase).appendChild(p);
 
@@ -92,7 +90,9 @@ function showNodosXYZ(nodo,divBase){
 
 function altaTopolAtlas(){
 	var nodos = new Array();
-	for (i=0;i<6;i++){
+	var nodo0 = getNodoZero('Conjunto 1','STD');
+	nodos.push(nodo0);
+	for (i=1;i<6;i++){
 		var nodo = getNodoStd('','Nodo '+i);
 		nodos.push(nodo);
 	}
@@ -278,9 +278,8 @@ function topol2stmt(topol,clonar){
 
 	var strNodos = arrayJSON(nodos);
 	
-	var strJson = '{"id0":'+idDoc+',"nombre":"'+nodo0.get('tag')+'", "tipo":"'+tipoT+'", "mask":"'+maskT+'", "nodos":'+strNodos+'}';
+	var stmt = '{"id0":'+idDoc+',"nombre":"'+nodo0.get('tag')+'", "tipo":"'+tipoT+'", "mask":"'+maskT+'", "nodos":'+strNodos+'}';
 	var ok = JSON.parse(strJson);
-	stmt = 'db.'+colecc+'.update({"id0":'+idDoc+'},'+strJson+',{upsert: true})';
 	return stmt;
 }
 
