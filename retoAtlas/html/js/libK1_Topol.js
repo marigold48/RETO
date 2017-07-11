@@ -85,7 +85,7 @@ function saveTopolAtlas() {
 }
 function showNodosXYZ(nodo){
 	var p = new Element('p').update(nodo.get('tag'));
-	$('divBase').appendChild();
+	$('divBase').appendChild(p);
 
 }
 
