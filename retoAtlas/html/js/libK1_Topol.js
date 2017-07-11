@@ -93,7 +93,7 @@ function showNodosXYZ(nodo,divBase){
 function altaTopolAtlas(){
 	var nodos = new Array();
 	for (i=0;i<6;i++){
-		var nodo = getNodoStd('Nodo '+i);
+		var nodo = getNodoStd('','Nodo '+i);
 		nodos.push(nodo);
 	}
 	$('divBase').update();
