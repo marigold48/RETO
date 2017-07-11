@@ -83,9 +83,10 @@ function saveTopolAtlas() {
 	.then(getTopolAtlas);
 	c.value = "";
 }
-function showNodosXYZ(nodo){
+function showNodosXYZ(nodo,divBase){
+	alert(nodo.get('tag'));
 	var p = new Element('p').update(nodo.get('tag'));
-	$('divBase').appendChild(p);
+	$(divBase).appendChild(p);
 
 }
 
