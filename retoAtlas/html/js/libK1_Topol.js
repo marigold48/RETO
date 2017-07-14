@@ -80,7 +80,7 @@ function displayCommentsOnLoad() {
 function saveTopolAtlas() {
 	var stmt = 	topol2stmt(vgTopol.topol,false);
 	console.log(stmt);
-	db.collection("topol").update({"id0":1234567},'+strJson+',{upsert: true});
+	db.collection('comments').update({"id0":1234567},'+stmt+',{upsert: true});
 }
 function showNodosXYZ(nodo,divBase){
 	var p = new Element('p').update(nodo.get('tag'));
