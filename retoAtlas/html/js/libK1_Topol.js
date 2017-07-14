@@ -262,6 +262,7 @@ function topol2stmt(topol,clonar){
 		nodo0.set('id0',idDoc);
 	}
 
+/*
 	var etc = nodo0.get('etc');
 	console.log('topol2stmt 1: ' + etc);
 	var params = etc.split('.');
@@ -276,9 +277,12 @@ function topol2stmt(topol,clonar){
 	console.log('topol2stmt 2: ' + etc);
 	nodo0.set('etc',etc);
 
+*/
 	var strNodos = arrayJSON(nodos);
+	console.log('topol2stmt 1: ' + strNodos);
 	
 	var stmt = '{"id0":'+idDoc+',"nombre":"'+nodo0.get('tag')+'", "tipo":"'+tipoT+'", "mask":"'+maskT+'", "nodos":'+strNodos+'}';
+	console.log('topol2stmt 2: ' + stmt);
 	var ok = JSON.parse(stmt);
 	return stmt;
 }
@@ -288,7 +292,7 @@ function grabaTopol(bbdd,topol,fnPost){
 	var stmt = topol2stmt(topol,false);
 	console.log(stmt);
 
-	ajaxQueryMongoDB(id,bbdd,stmt,vgComun.pathApp,fnPost);
+//	ajaxQueryMongoDB(id,bbdd,stmt,vgComun.pathApp,fnPost);
 }
 
 function clonaTopol(db,topol,fnPost){
