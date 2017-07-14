@@ -279,7 +279,7 @@ function topol2stmt(topol,clonar){
 	var strNodos = arrayJSON(nodos);
 	
 	var stmt = '{"id0":'+idDoc+',"nombre":"'+nodo0.get('tag')+'", "tipo":"'+tipoT+'", "mask":"'+maskT+'", "nodos":'+strNodos+'}';
-	var ok = JSON.parse(strJson);
+	var ok = JSON.parse(stmt);
 	return stmt;
 }
 
