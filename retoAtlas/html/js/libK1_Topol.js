@@ -266,11 +266,12 @@ function topol2stmt(topol,clonar){
 	var etc = nodo0.get('etc');
 	console.log('topol2stmt 1: ' + etc);
 	var params = etc.split('.');
-	var colecc = params[0];
-	var tipoT  = params[1];
-	var nombre = params[2];
-	var maskT  = params[3];
-
+*/
+	var colecc = 'topol';
+	var tipoT  = 'STD';
+	var nombre = 'Conjunto1';
+	var maskT  = '.conjt';
+/*
 // Sincroniza el nombre (tag) en etc	
 	params[2] = nodo0.get('tag');
 	etc = params.join('.');
