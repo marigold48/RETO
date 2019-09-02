@@ -1,0 +1,33 @@
+{
+  "name": "RETO",
+  "version": "1.0.0",
+  "description": "Proyecto RETO",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marigold/repository.git"
+  },
+  "scripts": {
+    "testK1_Utils" : "mocha apps/App0/tests/mocha/testUtils.js",
+    "testK1_Topol" : "mocha apps/App0/tests/mocha/testTopol.js",
+    "testK1_Ajax"  : "mocha apps/App0/tests/mocha/testAjax.js",
+    "testK1_Sesion": "mocha apps/App0/tests/mocha/testSesion.js",
+    "testK1_Clases": "mocha apps/App0/tests/mocha/testClases.js",
+    "buildK1" :"parcel build kernels/kernel1/alfa/pba1.html --out-dir ./kernels/kernel1/beta"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "chai": "^4.2.0",
+    "express": "^4.16.4",
+    "method-override": "^3.0.0",
+    "mocha": "^6.0.2",
+    "mongoose": "^5.4.17",
+    "sinon": "^7.3.0"
+  },
+  "devDependencies": {
+    "xmlhttprequest": "^1.8.0"
+  }
+}
